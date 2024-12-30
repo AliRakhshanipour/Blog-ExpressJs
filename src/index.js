@@ -1,8 +1,10 @@
 import { config } from 'dotenv';
 import express from 'express';
+import session from 'express-session';
 import morgan from 'morgan';
 import { ErrorHandler } from './common/error-handlers.js'; // Adjust naming for consistency
 import { dbAuthenticate } from './configs/database.config.js';
+import passport from './configs/passport.config.js';
 import { syncModels } from './models/index.js';
 import { MainRoutes } from './routes/index.js';
 
@@ -16,12 +18,23 @@ const bootstrap = async () => {
     app.use(express.urlencoded({ extended: true }));
     app.use(morgan('dev'));
 
-    // Database Authentication
+    // Configure session
+    app.use(
+      session({
+        secret: process.env.SECRET_KEY || 'your-secret-key',
+        resave: false,
+        saveUninitialized: false,
+        // You may also configure cookie options here
+      })
+    );
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+
     await dbAuthenticate();
     await syncModels();
 
     app.use('/', MainRoutes);
-    // Middlewares and Error Handlers
     ErrorHandler(app);
 
     // Creating Server
@@ -31,7 +44,7 @@ const bootstrap = async () => {
     });
   } catch (error) {
     console.error('Application bootstrap failed:', error.message);
-    process.exit(1); // Exit process with failure
+    process.exit(1);
   }
 };
 

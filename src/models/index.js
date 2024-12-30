@@ -1,9 +1,11 @@
 import { sequellize } from '../configs/database.config.js';
 import { initPost } from './post.model.js';
+import { initUser } from './user.model.js';
 
 // Initialize all models
 export const models = {
   Post: initPost(sequellize),
+  User: initUser(sequellize),
 };
 
 export const syncModels = async () => {
